@@ -7,10 +7,13 @@
 #define Q 4
 #define TI (float)1
 
+// declaracion de los procesos a "ejecutar", los campos son respectivamente:
+// Descripcion, PID, Tiempo de servicio, llegada, salida
+//el campo llegada no se utiliza, está simplemente para actualizarlo despues
 Proceso procesos[] = {
     {"PA\0",15, 9, 0, 0},
     {"PB\0",29, 3, 0, 0},
-    {"PC\0",18, 14, 0, 0},
+    {"PC\0",18, 25, 0, 0},
     {"ENDP\0",0,0,0,0} // utilizo el PID 0 como corte para la carga de procesos
 };
 
@@ -44,52 +47,37 @@ int main (){
         printf("%5.2f %-50s %-20s %-8d\n", reloj, "Rutina 2 Ready --> Run", p.descripcion, p.pid);
         tiempoEspera += (TI/2) * getCantidadProcesos(colaReady);
         reloj = reloj + TI/2;
+        
+        if ((p.ts > Q) && !esVacia(colaReady)){
+            sprintf(evento, "Se ejecuta por %d tiempo", Q);
+            printf("\033[32m%5.2f %-50s %-20s %-8d\n\033[0m", reloj, evento, p.descripcion, p.pid);
+            
+            reloj += Q;
+            p.ts -= Q;
 
-        if (esVacia(colaReady)){
+            printf("\033[36m%5.2f %-50s %-20s %-8d\n\033[0m", reloj, "Rutina 3 Run --> Ready interrupcion por quantum", p.descripcion, p.pid);
+            
+            reloj += TI/2;
+            tiempoEspera += (Q + TI/2) * getCantidadProcesos(colaReady);
+            agregarProceso(colaReady, p);
+            
+        }
+        else{
             sprintf(evento, "Se ejecuta por %d tiempo", p.ts);
             printf("\033[32m%5.2f %-50s %-20s %-8d\n\033[0m", reloj, evento, p.descripcion, p.pid);
-            //printf("\033[32m\033[1m Instante %.2f:\033[0m Se ejecuta por %d tiempo el proceso: %s | PID: %d\n",reloj, p.ts, p.descripcion, p.pid );
+            
             reloj += p.ts;
             p.ts = 0;
 
             printf("\033[36m%5.2f %-50s %-20s %-8d\n\033[0m", reloj, "Rutina 6 Run --> Terminado", p.descripcion, p.pid);
-            //printf("\033[31m\033[1m Instante %.2f:\033[0m Rutina 6 Run --> Terminado para proceso %s | PID: %d\n",reloj, p.descripcion, p.pid);
+            
             p.retorno = reloj;
-            agregarProceso(colaTerminados, p);
             reloj += TI/2;
+            tiempoEspera += (p.ts + TI/2) * getCantidadProcesos(colaReady);
+            agregarProceso(colaTerminados, p);
             
         }
-        else{
-            if (p.ts > Q){
-                sprintf(evento, "Se ejecuta por %d tiempo", Q);
-                printf("\033[32m%5.2f %-50s %-20s %-8d\n\033[0m", reloj, evento, p.descripcion, p.pid);
-                //printf("\033[32m\033[1m Instante %.2f:\033[0m Se ejecuta por %d tiempo el proceso %s | PID: %d\n", reloj, Q, p.descripcion, p.pid);
-                reloj += Q;
-                p.ts -= Q;
-
-                printf("\033[36m%5.2f %-50s %-20s %-8d\n\033[0m", reloj, "Rutina 3 Run --> Ready interrupcion por quantum", p.descripcion, p.pid);
-                //printf("\033[31m\033[1m Instante %.2f:\033[0m Rutina 3 Run --> Ready interrupcion por quantum para proceso %s | PID: %d\n",reloj, p.descripcion, p.pid);
-                reloj += TI/2;
-                tiempoEspera += (Q + TI/2) * getCantidadProcesos(colaReady);
-                agregarProceso(colaReady, p);
-                
-            }
-            else{
-                sprintf(evento, "Se ejecuta por %d tiempo", p.ts);
-                printf("\033[32m%5.2f %-50s %-20s %-8d\n\033[0m", reloj, evento, p.descripcion, p.pid);
-                //printf("\033[32m\033[1m Instante %.2f:\033[0m Se ejecuta por %d tiempo el proceso %s | PID: %d\n",reloj, p.ts, p.descripcion, p.pid);
-                reloj += p.ts;
-                p.ts = 0;
-
-                printf("\033[36m%5.2f %-50s %-20s %-8d\n\033[0m", reloj, "Rutina 6 Run --> Terminado", p.descripcion, p.pid);
-                //printf("\033[31m\033[1m Instante %.2f:\033[0m Rutina 6 Run --> Terminado para proceso %s | PID: %d \n",reloj, p.descripcion, p.pid);
-                p.retorno = reloj;
-                reloj += TI/2;
-                tiempoEspera += (p.ts + TI/2) * getCantidadProcesos(colaReady);
-                agregarProceso(colaTerminados, p);
-                
-            }
-        }
+        
 
         
 
