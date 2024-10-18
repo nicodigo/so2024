@@ -18,7 +18,7 @@ int main(){
     int ind = 0;
     char letra;
     while(1){
-        while(*dirContador == 0);
+        while(*dirContador == 0); //buffer vacio
         //seccion critica
         letra = dirbuffer[ind];
         *dirContador = *dirContador - 1;
