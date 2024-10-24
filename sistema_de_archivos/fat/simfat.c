@@ -55,6 +55,7 @@ int archivo_existe(char * nombre)
 
 void crear_archivo(char *nombre, int size)
 {
+    if (size <= 0) return;
     int bloques_necesarios = ((size + BLOCK_SIZE - 1 )  / BLOCK_SIZE);
     printf("Bloques_necesarios : %d\n", bloques_necesarios);
     if (bloques_necesarios > espacio_disponible)
@@ -95,6 +96,7 @@ void crear_archivo(char *nombre, int size)
     int bloque_anterior = a.bloque_comienzo;
     
 
+    
     for (int i = bloque_anterior; i < DISK_SIZE && bloques_necesarios > 0; i++)
     {
         if (fat[i] == NULO)
@@ -106,7 +108,7 @@ void crear_archivo(char *nombre, int size)
             bloques_necesarios--;
         }
     }
-
+    
     printf("Archivo creado \n");
 
 }
@@ -135,9 +137,10 @@ void eliminar_archivo(char * nombre)
         prox_bloque = fat[bloque_actual];
         fat[bloque_actual] = NULO;
         bloque_actual = prox_bloque;
+        espacio_disponible++;
     }
     fat[bloque_actual] = NULO;
-    espacio_disponible += directorio[ind_dir].size;
+    espacio_disponible++;
     directorio[ind_dir].bloque_comienzo = NULO;
     
 
